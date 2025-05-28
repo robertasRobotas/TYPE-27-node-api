@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-const cars = [];
+let cars = [];
 
 export const GET_ALL_CARS = (req, res) => {
   const isDataExist = !!cars.length;
@@ -57,6 +57,50 @@ export const INSERT_CAR = (req, res) => {
 
   return res.status(201).json({
     messgage: "car was added",
+    car: car,
+  });
+};
+
+export const UPDATE_CAR_BY_ID = (req, res) => {
+  const id = req.params.id;
+
+  const idx = cars.findIndex((c) => id === c.id);
+
+  if (idx === -1) {
+    return res.status(404).json({
+      messgage: `Data with id ${id} does not exist`,
+    });
+  }
+
+  cars[idx] = { ...cars[idx], ...req.body };
+
+  return res.status(200).json({
+    messgage: "car was updates",
+    car: cars[idx],
+  });
+};
+
+export const DELETE_CAR_BY_ID = (req, res) => {
+  const id = req.params.id;
+
+  const car = cars.find((c) => {
+    return c.id === id;
+  });
+
+  if (!car) {
+    return res.status(404).json({
+      messgage: `Data with id ${id} does not exist`,
+    });
+  }
+
+  const filteredCars = cars.filter((c) => {
+    return c.id !== id;
+  });
+
+  cars = filteredCars;
+
+  return res.status(200).json({
+    messgage: "car was deleted",
     car: car,
   });
 };
