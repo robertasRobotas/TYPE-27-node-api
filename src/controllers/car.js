@@ -1,106 +1,117 @@
 import { v4 as uuidv4 } from "uuid";
+import CarModel from "../models/car.js";
 
-let cars = [];
+export const GET_ALL_CARS = async (req, res) => {
+  try {
+    const cars = await CarModel.find();
 
-export const GET_ALL_CARS = (req, res) => {
-  const isDataExist = !!cars.length;
-
-  if (!isDataExist) {
-    return res.status(404).json({
-      message: "Data does not exist",
+    return res.status(200).json({
+      cars: cars,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message: "We have some problems",
     });
   }
-
-  return res.status(200).json({
-    cars: cars,
-  });
 };
 
-export const GET_CAR_BY_ID = (req, res) => {
-  const id = req.params.id;
+export const GET_CAR_BY_ID = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const car = await CarModel.findOne({ id: id });
 
-  const car = cars.find((c) => {
-    return c.id === id;
-  });
+    if (!car) {
+      return res.status(404).json({
+        message: "Car does not exist",
+      });
+    }
 
-  if (!car) {
-    return res.status(404).json({
-      message: "Car does not exist",
+    return res.status(200).json({
+      message: "Here is your car",
+      car: car,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message: "We have some problems",
     });
   }
-
-  return res.status(200).json({
-    message: "Here is your car",
-    car: car,
-  });
 };
 
-export const INSERT_CAR = (req, res) => {
-  const car = {
-    id: uuidv4(),
-    model: req.body.model,
-    year: req.body.year,
-    cratedAt: new Date(),
-  };
+export const INSERT_CAR = async (req, res) => {
+  try {
+    const car = {
+      id: uuidv4(),
+      model: req.body.model,
+      year: req.body.year,
+      cratedAt: new Date(),
+    };
 
-  const isDataExist = cars.some((c) => {
-    return c.model === car.model;
-  });
+    const response = new CarModel(car);
 
-  if (isDataExist) {
-    return res
-      .status(409)
-      .json({ message: `Data with id ${car.id} already exist` });
-  }
+    const data = await response.save();
 
-  cars.push(car);
-
-  return res.status(201).json({
-    messgage: "car was added",
-    car: car,
-  });
-};
-
-export const UPDATE_CAR_BY_ID = (req, res) => {
-  const id = req.params.id;
-
-  const idx = cars.findIndex((c) => id === c.id);
-
-  if (idx === -1) {
-    return res.status(404).json({
-      messgage: `Data with id ${id} does not exist`,
+    return res.status(201).json({
+      messgage: "car was added",
+      car: data,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message: "We have some problems",
     });
   }
-
-  cars[idx] = { ...cars[idx], ...req.body };
-
-  return res.status(200).json({
-    messgage: "car was updates",
-    car: cars[idx],
-  });
 };
 
-export const DELETE_CAR_BY_ID = (req, res) => {
-  const id = req.params.id;
+export const UPDATE_CAR_BY_ID = async (req, res) => {
+  try {
+    const id = req.params.id;
 
-  const car = cars.find((c) => {
-    return c.id === id;
-  });
+    const car = await CarModel.findOneAndUpdate(
+      { id: id },
+      { ...req.body },
+      { new: true }
+    );
 
-  if (!car) {
-    return res.status(404).json({
-      messgage: `Data with id ${id} does not exist`,
+    if (!car) {
+      return res.status(404).json({
+        messgage: `Data with id ${id} does not exist`,
+      });
+    }
+
+    return res.status(200).json({
+      messgage: "car was updated",
+      car: car,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message: "We have some problems",
     });
   }
+};
 
-  const filteredCars = cars.filter((c) => {
-    return c.id !== id;
-  });
+export const DELETE_CAR_BY_ID = async (req, res) => {
+  try {
+    const id = req.params.id;
 
-  cars = filteredCars;
+    const car = await CarModel.findOneAndDelete({ id: id });
 
-  return res.status(200).json({
-    messgage: "car was deleted",
-    car: car,
-  });
+    if (!car) {
+      return res.status(404).json({
+        message: `Data with id ${id} does not exist`,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Car was deleted",
+      car,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message: "We have some problems",
+    });
+  }
 };
