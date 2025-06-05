@@ -1,12 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
-import CarModel from "../models/car.js";
+import BoardGameModel from "../models/game.js";
 
-export const GET_ALL_CARS = async (req, res) => {
+export const GET_ALL = async (req, res) => {
   try {
-    const cars = await CarModel.find();
+    const games = await BoardGameModel.find();
 
     return res.status(200).json({
-      cars: cars,
+      games: games,
     });
   } catch (err) {
     console.log(err);
@@ -16,20 +16,20 @@ export const GET_ALL_CARS = async (req, res) => {
   }
 };
 
-export const GET_CAR_BY_ID = async (req, res) => {
+export const GET_BY_ID = async (req, res) => {
   try {
     const id = req.params.id;
-    const car = await CarModel.findOne({ id: id });
+    const game = await BoardGameModel.findOne({ id: id });
 
-    if (!car) {
+    if (!game) {
       return res.status(404).json({
-        message: "Car does not exist",
+        message: "Game does not exist",
       });
     }
 
     return res.status(200).json({
-      message: "Here is your car",
-      car: car,
+      message: "Here is your game",
+      game: game,
     });
   } catch (err) {
     console.log(err);
@@ -39,22 +39,31 @@ export const GET_CAR_BY_ID = async (req, res) => {
   }
 };
 
-export const INSERT_CAR = async (req, res) => {
+export const INSERT = async (req, res) => {
   try {
-    const car = {
+    const existingGame = await BoardGameModel.findOne({
+      title: req.body.title,
+    });
+
+    if (existingGame) {
+      return res.status(409).json({
+        messgage: `Game ${req.body.title} already exist`,
+      });
+    }
+
+    const game = {
+      ...req.body,
       id: uuidv4(),
-      model: req.body.model,
-      year: req.body.year,
       cratedAt: new Date(),
     };
 
-    const response = new CarModel(car);
+    const response = new BoardGameModel(game);
 
     const data = await response.save();
 
     return res.status(201).json({
-      messgage: "car was added",
-      car: data,
+      messgage: "game was added",
+      game: data,
     });
   } catch (err) {
     console.log(err);
@@ -64,25 +73,25 @@ export const INSERT_CAR = async (req, res) => {
   }
 };
 
-export const UPDATE_CAR_BY_ID = async (req, res) => {
+export const UPDATE_BY_ID = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const car = await CarModel.findOneAndUpdate(
+    const game = await BoardGameModel.findOneAndUpdate(
       { id: id },
       { ...req.body },
       { new: true }
     );
 
-    if (!car) {
+    if (!game) {
       return res.status(404).json({
         messgage: `Data with id ${id} does not exist`,
       });
     }
 
     return res.status(200).json({
-      messgage: "car was updated",
-      car: car,
+      messgage: "game was updated",
+      game: game,
     });
   } catch (err) {
     console.log(err);
@@ -92,21 +101,21 @@ export const UPDATE_CAR_BY_ID = async (req, res) => {
   }
 };
 
-export const DELETE_CAR_BY_ID = async (req, res) => {
+export const DELETE_BY_ID = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const car = await CarModel.findOneAndDelete({ id: id });
+    const game = await BoardGameModel.findOneAndDelete({ id: id });
 
-    if (!car) {
+    if (!game) {
       return res.status(404).json({
         message: `Data with id ${id} does not exist`,
       });
     }
 
     return res.status(200).json({
-      message: "Car was deleted",
-      car,
+      message: "Game was deleted",
+      game,
     });
   } catch (err) {
     console.log(err);

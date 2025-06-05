@@ -1,11 +1,12 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import carRouter from "./src/routes/car.js";
+import gameRouter from "./src/routes/game.js";
 import "dotenv/config";
 
 const app = express();
 
+// TODO: add real ui url
 app.use(cors());
 
 app.use(express.json());
@@ -17,7 +18,7 @@ mongoose
     console.log(err);
   });
 
-app.use(carRouter);
+app.use("/games", gameRouter);
 
 app.use((_req, res) => {
   return res.status(404).json({
