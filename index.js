@@ -1,8 +1,9 @@
 import express from "express";
+import "dotenv/config";
 import cors from "cors";
 import mongoose from "mongoose";
 import gameRouter from "./src/routes/game.js";
-import "dotenv/config";
+import userRouter from "./src/routes/user.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ mongoose
     console.log(err);
   });
 
+app.use("/users", userRouter);
 app.use("/games", gameRouter);
 
 app.use((_req, res) => {
