@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import UserModel from "../models/user.js";
+import jwt from "jsonwebtoken";
 
 export const INSERT_USER = async (req, res) => {
   try {
@@ -30,6 +31,35 @@ export const INSERT_USER = async (req, res) => {
 
     return res.status(500).json({ message: "Something went wrong" });
   }
+};
+
+export const LOGIN_USER = async (req, res) => {
+  const user = await UserModel.findOne({ email: req.body.email });
+
+  if (!user) {
+    return res.status(401).json({
+      message: "User provided data is wrong (email)",
+    });
+  }
+
+  const isPasswordMatch = bcrypt.compareSync(req.body.password, user.password);
+
+  if (!isPasswordMatch) {
+    return res.status(401).json({
+      message: "User provided data is wrong (password)",
+    });
+  }
+
+  const token = jwt.sign(
+    { userEmail: user.email, userId: user.id },
+    process.env.JWT_SECRET,
+    { expiresIn: "12h" }
+  );
+
+  return res.status(200).json({
+    message: "User legged in successfully",
+    jwt: token,
+  });
 };
 
 export const GET_ALL = async (req, res) => {
