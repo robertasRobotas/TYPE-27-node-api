@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import UserModel from "../models/user.js";
+import GameModel from "../models/game.js";
 import jwt from "jsonwebtoken";
 
 export const INSERT_USER = async (req, res) => {
@@ -63,9 +64,72 @@ export const LOGIN_USER = async (req, res) => {
 };
 
 export const GET_ALL = async (req, res) => {
-  const users = await UserModel.find().select("-password -createdAt -__v");
+  const users = await UserModel.aggregate([
+    {
+      $lookup: {
+        from: "boardgames",
+        localField: "savedBoardgames",
+        foreignField: "id",
+        as: "boardgames",
+      },
+    },
+    {
+      $project: {
+        password: 0,
+        createAt: 0,
+        __v: 0,
+      },
+    },
+  ]);
 
   res.status(200).json({
     users: users,
+  });
+};
+
+export const GET_USER_BY_ID = async (req, res) => {
+  const userId = req.body.userId;
+
+  console.log(userId);
+
+  const user = await UserModel.findOne({ id: userId })
+    .populate({
+      path: "savedBoardgames",
+      model: "Boardgame",
+      localField: "savedBoardgames",
+      foreignField: "id",
+      as: "boardgames",
+    })
+    .select("-password -createAt -__v");
+
+  res.status(200).json({
+    user: user,
+  });
+};
+
+export const SAVE_GAME_TO_USER = async (req, res) => {
+  const userId = req.body.userId;
+  const gameId = req.body.gameId;
+
+  const game = await GameModel.findOne({ id: gameId });
+
+  if (!game) {
+    return res.status(404).json({
+      message: `Game with id ${gameId} does not exist`,
+    });
+  }
+
+  // const user = await UserModel.findOne({ id: userId });
+  // user.savedBoardgames.push(gameId);
+
+  const response = await UserModel.findOneAndUpdate(
+    { id: userId },
+    { $push: { savedBoardgames: gameId } },
+    { new: true }
+  );
+
+  res.status(200).json({
+    message: "boardgame was added",
+    response: response,
   });
 };
