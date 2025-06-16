@@ -90,8 +90,6 @@ export const GET_ALL = async (req, res) => {
 export const GET_USER_BY_ID = async (req, res) => {
   const userId = req.body.userId;
 
-  console.log(userId);
-
   const user = await UserModel.findOne({ id: userId })
     .populate({
       path: "savedBoardgames",

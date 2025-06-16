@@ -16,9 +16,10 @@ const auth = (req, res, next) => {
       });
     }
 
+    req.body = req.body || {};
     req.body.userId = decoded.userId;
 
-    next();
+    return next();
   });
 };
 
