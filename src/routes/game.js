@@ -13,7 +13,7 @@ import boardgameSchema from "../schemas/boardgame.js";
 
 const router = express.Router();
 
-router.get("/", auth, GET_ALL);
+router.get("/", GET_ALL);
 
 router.get("/:id", auth, GET_BY_ID);
 
